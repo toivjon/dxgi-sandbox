@@ -1,5 +1,5 @@
 # dxgi-sandbox
-This is sandbox is dedicated for my personal study about how the Microsoft DirectX Graphics Infrastructure (DXGI) works.
+This sandbox is dedicated for my personal study about how the Microsoft DirectX Graphics Infrastructure (DXGI) works.
 
 ## Sources
 
