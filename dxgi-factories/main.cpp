@@ -60,9 +60,9 @@ int main() {
 	//                          Note that the factory enumerates the adapter set
 	//                          when factory is created. If adapters change, a
 	//                          new factory must be created to get current set.
-	// GetWindowAssociation   : Get a handle to the window that is currently
+	//  GetWindowAssociation  : Get a handle to the window that is currently
 	//                          being resized on the window/fullscreen toggle.
-	// MakeWindowAssociation  : Set the handle of the window to be monitored by
+	//  MakeWindowAssociation : Set the handle of the window to be monitored by
 	//                          the DXGI for window specific graphics events.
 	//                          Additional flags can be provided for association.
 	//
