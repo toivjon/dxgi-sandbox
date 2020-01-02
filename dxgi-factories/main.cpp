@@ -35,6 +35,10 @@ inline void check_hresult(HRESULT result) {
 //   IDXGIFactory6 : Minimum OS is Windows 10 (ver. 1803)
 //   IDXGIFactory7 : Minimum OS is Windows 10 (ver. 1809)
 //
+// # Device Enumerations
+// DXGI factory enumerates devices when the factory is created and NOT when the
+// enumeration function is actually being called. Therefore it is important to
+// (re)create a new factory after the set of system devices has been changed.
 // ============================================================================
 
 int main() {
