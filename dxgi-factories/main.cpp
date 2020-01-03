@@ -100,18 +100,42 @@ int main() {
 	// ==========================================================================
 
 	printf("enumeration up-to-date? %s\n", (factory->IsCurrent() ? "yes": "no"));
-
+	
+	// ==========================================================================
 	// additions in the IDXGIFactory2
-	// TODO dxgiFactory->CreateSwapChainForComposition
-	// TODO dxgiFactory->CreateSwapChainForCoreWindow
-	// TODO dxgiFactory->CreateSwapChainForHwnd
-	// TODO dxgiFactory->GetSharedResourceAdapterLuid
-	// TODO dxgiFactory->IsWindowedStereoEnabled
-	// TODO dxgiFactory->RegisterOcclusionStatusEvent
-	// TODO dxgiFactory->RegisterOcclusionStatusWindow
-	// TODO dxgiFactory->RegisterStereoStatusWindow
-	// TODO dxgiFactory->UnregisterOcclusionStatus
-	// TODO dxgiFactory->UnregisterStereoStatus
+	//
+	// CreateSwapChainForComposition	: Create a new swap chain for the target
+	//                                    DirectComposition or XAML framework to
+	//                                    device or the command queue if Direct3D
+	//                                    12 is being used. Note that these swap
+	//                                    chains allow only sequential flip swap
+	//                                    effects (DXGI_SWAP_CHAIN_DESC1).
+	// CreateSwapChainForCoreWindow		: Create a new swap chain for the target
+	//                                    UWP CoreWindow to device or the command
+	//									  queue if Direct3D 12 is being used.
+	// CreateSwapChainForHwnd			: Create a new swap chain for the target
+	//									  HWND handle to device or the command
+	//									  queue if Direct3D 12 is being used.
+	// GetSharedResourceAdapterLuid		: Identify the LUID of the adapter which
+	//									  has a permission to open the resource.
+	// IsWindowedStereoEnabled			: Check if the usage of the stereoscopic
+	//									  graphics mode is allowed by the system.
+	// RegisterOcclusionStatusEvent		: Register the application to receive OS
+	//                                    event from the OS when application is
+	//                                    occluded (hidden or otherwise unseen).
+	// RegisterOcclusionStatusWindow	: Register the application window to get
+	//									  OS event when application is occluded
+	//									  (hidden or otherwise unseen).
+	// RegisterStereoStatusWindow		: Register the application window the get
+	//									  notification events about changes of the
+	//									  stereo status.
+	// UnregisterOcclusionStatus		: Unregister window or application from
+	//									  receiving events about the occlusions.
+	// UnregisterStereoStatus			: Unregister window or application from
+	//									  receiving events of the stereo status.
+	// ==========================================================================
+
+	printf("stereographics supported? %d\n", factory->IsWindowedStereoEnabled());
 
 	// additions in the IDXGIFactory3
 	// TOOD dxgiFactory->GetCreationFlags
