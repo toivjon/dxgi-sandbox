@@ -167,8 +167,22 @@ int main() {
 	printf("video-mem   : %d\n", adapterDesc.DedicatedVideoMemory);
 	printf("shared-mem  : %d\n", adapterDesc.SharedSystemMemory);
 
+	// ==========================================================================
 	// additions in the IDXGIFactory5
-	// TODO dxgiFactory->CheckFeatureSupport
+	//
+	// CheckFeatureSupport	: Check what kind of hardware features are available.
+	//						  Currently enumeration contains only following item:
+	//						  DXGI_FEATURE_PRESENT_ALLOW_TEARING, which is there
+	//						  if hardware supports variable refresh rate display.
+	// ==========================================================================
+
+	BOOL allowTearing = FALSE;
+	factory->CheckFeatureSupport(
+		DXGI_FEATURE_PRESENT_ALLOW_TEARING,
+		&allowTearing,
+		sizeof(allowTearing)
+	);
+	printf("tearing supported: %s\n", (allowTearing ? "yes" : "no"));
 
 	// additions in the IDXGIFactory6
 	// TODO dxgiFactory->EnumAdapterByGpuPreference
