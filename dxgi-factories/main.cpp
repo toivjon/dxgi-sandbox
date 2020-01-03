@@ -137,8 +137,15 @@ int main() {
 
 	printf("stereographics supported? %d\n", factory->IsWindowedStereoEnabled());
 
+	// ==========================================================================
 	// additions in the IDXGIFactory3
-	// TOOD dxgiFactory->GetCreationFlags
+	//
+	// GetCreationFlags	: Get the flags provided for the DXGI factory during the
+	//					  construction phase (CreateDXGIFactory2). At the moment
+	//					  only supported flag is DXGI_CREATE_FACTORY_DEBUG.
+	// ==========================================================================
+
+	printf("factory creation flags: %d\n", factory->GetCreationFlags());
 
 	// additions in the IDXGIFactory4
 	// TODO dxgiFactory->EnumWarpAdapter
