@@ -147,9 +147,25 @@ int main() {
 
 	printf("factory creation flags: %d\n", factory->GetCreationFlags());
 
+	// ==========================================================================
 	// additions in the IDXGIFactory4
-	// TODO dxgiFactory->EnumWarpAdapter
-	// TODO dxgiFactory->EnumAdapterByLuid
+	//
+	// EnumWarpAdapter		: Get the adapter that can be used build a Direct3D
+	//						  device that uses a WARP renderer. WARP renderers are
+	//						  quite heavy and should be only used in development.
+	//						  Note that Xbox One requires one to use WARP device
+	//						  when in the developer mode if Direct3D 12 is used.
+	// EnumAdapterByLuid	: Get the adapter that has the provided LUID. Used in
+	//						  pair with ID3D12Device::GetAdapterLuid if needed.
+	// ==========================================================================
+
+	check_hresult(factory->EnumWarpAdapter(IID_PPV_ARGS(&adapter)));
+	DXGI_ADAPTER_DESC adapterDesc;
+	check_hresult(adapter->GetDesc(&adapterDesc));
+	printf("WARP adapter details:\n");
+	printf("system-mem  : %d\n", adapterDesc.DedicatedSystemMemory);
+	printf("video-mem   : %d\n", adapterDesc.DedicatedVideoMemory);
+	printf("shared-mem  : %d\n", adapterDesc.SharedSystemMemory);
 
 	// additions in the IDXGIFactory5
 	// TODO dxgiFactory->CheckFeatureSupport
