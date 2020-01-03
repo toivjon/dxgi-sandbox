@@ -9,7 +9,7 @@ using namespace Microsoft::WRL; // ComPtr
 
 // a utility to easily catch failed HRESULTS.
 inline void check_hresult(HRESULT result) {
-	if (FAILED(0)) {
+	if (FAILED(result)) {
 		throw _com_error(result);
 	}
 }
@@ -83,9 +83,12 @@ int main() {
 		printf("Adapter %d device-id: %d\n", i, desc.DeviceId);
 	}
 
+	// ==========================================================================
 	// additions in the IDXGIFactory1
-	// TODO dxgiFactory->EnumAdapters1
-	// TODO dxgiFactory->IsCurrent
+	// 
+	// EnumAdapters1	: 
+	// IsCurrent		:
+	// ==========================================================================
 
 	// additions in the IDXGIFactory2
 	// TODO dxgiFactory->CreateSwapChainForComposition
