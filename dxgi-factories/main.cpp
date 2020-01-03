@@ -207,9 +207,16 @@ int main() {
 		printf("Adapter %d device-id: %d\n", i, desc.DeviceId);
 	}
 
+	// ==========================================================================
 	// additions in the IDXGIFactory7
-	// TOOD dxgiFactory->RegisterAdaptersChangedEvent
-	// TODO dxgiFactory->UnregisterAdaptersChangedEvent
+	// 
+	// RegisterAdaptersChangedEvent	  : Register application to get notification
+	//									of changes in the adapter enumeration.
+	//									When this happens, we should build our
+	//									DXGI factory again to renew enumeration.
+	// UnregisterAdaptersChangedEvent : Unregister application to receive events
+	//								    about the changes in adapter enumeration.
+	// ==========================================================================
 
 	return 0;
 }
