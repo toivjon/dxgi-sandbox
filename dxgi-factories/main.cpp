@@ -177,11 +177,11 @@ int main() {
 	// ==========================================================================
 
 	BOOL allowTearing = FALSE;
-	factory->CheckFeatureSupport(
+	check_hresult(factory->CheckFeatureSupport(
 		DXGI_FEATURE_PRESENT_ALLOW_TEARING,
 		&allowTearing,
 		sizeof(allowTearing)
-	);
+	));
 	printf("tearing supported: %s\n", (allowTearing ? "yes" : "no"));
 
 	// additions in the IDXGIFactory6
