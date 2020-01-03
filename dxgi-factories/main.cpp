@@ -184,8 +184,28 @@ int main() {
 	));
 	printf("tearing supported: %s\n", (allowTearing ? "yes" : "no"));
 
+	// ==========================================================================
 	// additions in the IDXGIFactory6
-	// TODO dxgiFactory->EnumAdapterByGpuPreference
+	//
+	// EnumAdapterByGpuPreference	: Enumerate and order adapters based on the
+	//								  given GPU preference. There are possible
+	//							      ordering options where to select.
+	//
+	//								  DXGI_CPU_PREFERENCE_UNSPECIFIED
+	//								  DXGI_CPU_PREFERENCE_MINIMUM_POWER
+	//								  DXGI_CPU_PREFERENCE_HIGH_PERFORMANCE
+	// ==========================================================================
+
+	for (auto i = 0;
+		factory->EnumAdapterByGpuPreference(
+			i,
+			DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE,
+			IID_PPV_ARGS(&adapter)) != DXGI_ERROR_NOT_FOUND;
+		i++) {
+		DXGI_ADAPTER_DESC desc;
+		adapter->GetDesc(&desc);
+		printf("Adapter %d device-id: %d\n", i, desc.DeviceId);
+	}
 
 	// additions in the IDXGIFactory7
 	// TOOD dxgiFactory->RegisterAdaptersChangedEvent
