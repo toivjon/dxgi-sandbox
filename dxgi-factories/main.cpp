@@ -86,9 +86,20 @@ int main() {
 	// ==========================================================================
 	// additions in the IDXGIFactory1
 	// 
-	// EnumAdapters1	: 
-	// IsCurrent		:
+	// EnumAdapters1	: Enumerate all display adapters in the system like the
+	//                    former EnumAdapters function. This version however, has
+	//                    more former ordering of the results like following.
+	//
+	//                    * First adapter is the adapter which shows desktop.
+	//                    * Then enumeration lists adapters with outputs.
+	//                    * Finally enumeration lists adapters without outputs.
+	// IsCurrent		: Tells whether there's been changed with the adapters
+	//                    after the factory was created. In such cases, it's most
+	//                    recommended that factory will be recreated and adapters
+	//                    would get enumerated again to get up-to-date set.
 	// ==========================================================================
+
+	printf("enumeration up-to-date? %s\n", (factory->IsCurrent() ? "yes": "no"));
 
 	// additions in the IDXGIFactory2
 	// TODO dxgiFactory->CreateSwapChainForComposition
