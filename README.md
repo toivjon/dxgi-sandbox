@@ -12,7 +12,7 @@ DXGI is used by the following DirectX versions:
 | ------- | --------- | --------------------------- | -------------------- |
 |   1.0	  | dxgi.h    | Windows Vista     		    | The base version. | 
 |   1.1	  | dxgi.h    | Windows Vista (SP2) 		| - Synchronized Shared Surfaces Support<br/> - High Color Support<br/> - Maximum Frame Latency Control Support<br/> - Adapter enumeration ordering<br/> - BGRA Support<br/> |
-|   1.2	  | dxgi1_2.h | Windows 7 (Platform Update) | |
+|   1.2	  | dxgi1_2.h | Windows 7 (Platform Update) | - Support for stereo swap chain<br/> - Support for flip-model swap chain<br/> - Optimization for presentations<br/> - Desktop duplication<br/> - Optimized the use of video memory<br/> - Support for 16 bpp formats<br/> - Support for debugging APIs |
 |   1.3	  | dxgi1_3.h | Windows 8.1                 | |
 |   1.4	  | dxgi1_4.h | Windows 10                  | |
 |   1.5	  | dxgi1_5.h | Windows 10                  | |
