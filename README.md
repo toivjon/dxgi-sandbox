@@ -11,7 +11,7 @@ DXGI is used by the following DirectX versions:
 | Version | Header    | Minimum Windows Platform    | Descriptiom
 | ------- | --------- | --------------------------- | ----------------- |
 |   1.0	  | dxgi.h    | Windows Vista     		    | The base version. | 
-|   1.1	  | dxgi.h    | Windows Vista (SP2) 		| <ul><li>A</li><li>B</li></ul> |
+|   1.1	  | dxgi.h    | Windows Vista (SP2) 		| - A<br/>-B<br/> |
 |   1.2	  | dxgi1_2.h | Windows 7 (Platform Update) | |
 |   1.3	  | dxgi1_3.h | Windows 8.1                 | |
 |   1.4	  | dxgi1_4.h | Windows 10                  | |
