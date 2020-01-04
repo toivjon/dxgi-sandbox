@@ -8,15 +8,15 @@ DXGI is used by the following DirectX versions:
 
 ## DXGI Versions
 
-| Version | 
-| ------- |
-|   1.0	  |
-|   1.1	  |
-|   1.2	  |
-|   1.3	  |
-|   1.4	  |
-|   1.5	  |
-|   1.6   |
+| Version | Header    |
+| ------- | --------- |
+|   1.0	  | dxgi.h    |
+|   1.1	  | dxgi.h    |
+|   1.2	  | dxgi1_2.h |
+|   1.3	  | dxgi1_3.h |
+|   1.4	  | dxgi1_4.h |
+|   1.5	  | dxgi1_5.h |
+|   1.6   | dxgi1_6.h |
 
 DXGI contains the following components:
 * IDXGIAdapter
