@@ -39,6 +39,42 @@ inline void check_hresult(HRESULT result) {
 // DXGI factory enumerates devices when the factory is created and NOT when the
 // enumeration function is actually being called. Therefore it is important to
 // (re)create a new factory after the set of system devices has been changed.
+//
+// # Features
+// Here is a list of features that are currently available with DXGI factories.
+//
+//	 1. Enumerate and track changes in the list of available display adapters.
+//		- EnumAdapterByGpuPreference
+//		- EnumAdapterByLuid
+//		- EnumAdapters
+//		- EnumAdapters1
+//		- EnumWarpAdapter
+//		- RegisterAdaptersChangedEvent
+//		- UnregisterAdaptersChangedEvent
+//   2. Create swap chains.
+//		- CreateSwapChain
+//		- CreateSwapChainForComposition
+//		- CreateSwapChainForCoreWindow
+//		- CreateSwapChainForHwnd
+//   3. Associate window with DXGI.
+//		- GetWindowAssociation
+//		- MakeWindowAssociation
+//   4. Register occlusion event listeners.
+//      - RegisterOcclusionStatusEvent
+//		- RegisterOcclusionStatusWindow
+//		- UnregisterOcclusionStatus
+//   5. Query and trace state about the stereographic mode support.
+//		- IsWindowedStereoEnabled
+//		- RegisterStereoStatusWindow
+//		- UnregisterStereoStatus
+//   6. Create a software display adapter from an external DLL.
+//		- CreateSoftwareAdapter
+//	 7. Check the supported features (currenlty only tearing support).
+//		- CheckFeatureSupport
+//   8. Get the LUID of the adapter owning the given shared resource.
+//		- GetSharedResourceAdapterLuid
+//	 9. Get the flag that was used when the DXGI factory was created.
+//		- GetCreationFlags
 // ============================================================================
 
 int main() {
