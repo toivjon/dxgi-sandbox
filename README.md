@@ -8,15 +8,15 @@ DXGI is used by the following DirectX versions:
 
 ## DXGI Versions
 
-| Version | Header    | Minimum Windows Platform    |
-| ------- | --------- | --------------------------- |
-|   1.0	  | dxgi.h    | Windows Vista     		    |
-|   1.1	  | dxgi.h    | Windows Vista (SP2) 		|
-|   1.2	  | dxgi1_2.h | Windows 7 (Platform Update) |
-|   1.3	  | dxgi1_3.h | Windows 8.1                 |
-|   1.4	  | dxgi1_4.h | Windows 10                  |
-|   1.5	  | dxgi1_5.h | Windows 10                  |
-|   1.6   | dxgi1_6.h | Windows 10                  |
+| Version | Header    | Minimum Windows Platform    | Descriptiom
+| ------- | --------- | --------------------------- | ----------------- |
+|   1.0	  | dxgi.h    | Windows Vista     		    | The base version. | 
+|   1.1	  | dxgi.h    | Windows Vista (SP2) 		| * A * B |
+|   1.2	  | dxgi1_2.h | Windows 7 (Platform Update) | |
+|   1.3	  | dxgi1_3.h | Windows 8.1                 | |
+|   1.4	  | dxgi1_4.h | Windows 10                  | |
+|   1.5	  | dxgi1_5.h | Windows 10                  | |
+|   1.6   | dxgi1_6.h | Windows 10                  | |
 
 DXGI contains the following components:
 * IDXGIAdapter
