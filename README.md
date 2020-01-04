@@ -6,6 +6,34 @@ DXGI is used by the following DirectX versions:
 * DirectX 11
 * DirectX 12
 
+DXGI has following versions:
+| Version | 
+| ------- |
+|   1.0	  |
+|   1.1	  |
+|   1.2	  |
+|   1.3	  |
+|   1.4	  |
+|   1.5	  |
+|   1.6   |
+
+DXGI contains the following components:
+* IDXGIAdapter
+* IDXGIDecodeSwapChain
+* IDXGIDevice
+* IDXGIDeviceSubObject
+* IDXGIDisplayControl
+* IDXGIFactory
+* IDXGIFactoryMedia
+* IDXGIKeyedMutex
+* IDXGIObject
+* IDXGIOutput
+* IDXGIOutputDuplication
+* IDXGIResource
+* IDXGISurface
+* IDXGISwapChain
+* IDXGISwapChainMedia
+
 ## Sources
 
 [DXGI Documentation](https://docs.microsoft.com/fi-fi/windows/win32/direct3ddxgi/dx-graphics-dxgi)
