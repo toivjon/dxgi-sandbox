@@ -16,7 +16,7 @@ DXGI is used by the following DirectX versions:
 |   1.3	  | dxgi1_3.h | Windows 8.1                 | - Support for DXGI adapter memory trim<br/> - Support for multi-plane overlays<br/> - Support for overlapping and scaled swap chains<br/> - Support for selecting backbuffer subregion for swap chain<br/> - Support for lower-latency swap chain presentation |
 |   1.4	  | dxgi1_4.h | Windows 10                  | - Support for cheaper adapter enumeration<br/> - Support for video memory budget tracking<br/> - Support for invariant backbuffer identity<br/> - Support for alternate frame rendering (AFR)<br/> - Fullscreen state no longer owns the display |
 |   1.5	  | dxgi1_5.h | Windows 10                  | - Hich Dynamic Range (HDR) support<br/> - Wide Color Gamut (WCG)<br/> - Support for flexible and performant output duplication<br/> - Support for offering and reclaiming resources |
-|   1.6   | dxgi1_6.h | Windows 10                  | |
+|   1.6   | dxgi1_6.h | Windows 10                  | - Adapter enumeration change event tracking<br/> - Support for adapter enumeration ordering prefence<br/> - Support for checking adapter synchronization object features<br/> - Support for detecting HDR display detection |
 
 DXGI contains the following components:
 * IDXGIAdapter
