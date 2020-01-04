@@ -6,7 +6,7 @@ DXGI is used by the following DirectX versions:
 * DirectX 11
 * DirectX 12
 
-## Versions
+## DXGI Versions
 
 | Version | 
 | ------- |
