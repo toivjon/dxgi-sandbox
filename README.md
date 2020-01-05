@@ -22,7 +22,7 @@ DXGI is used by the following DirectX versions:
 
 ![alt text](https://github.com/toivjon/dxgi-sandbox/blob/master/images/dxgi-interfaces.svg "DXGI Interfaces")
 
-| Name                   | Since | Description |
+| Interface Name         | Since | Description |
 | ---------------------- | ----- | ----------- |
 | IUnknown               | 1.0   | |
 | IDXGISwapChainMedia    | 1.3   | |
