@@ -27,18 +27,18 @@ DXGI is used by the following DirectX versions:
 | IUnknown               | 1.0   | The root interface for all COM interfaces. |
 | IDXGISwapChainMedia    | 1.3   | |
 | IDXGIFactoryMedia      | 1.3   | |
-| IDXGIObject            | 1.0   | |
+| IDXGIObject            | 1.0   | The base interface for most DXGI objects. |
 | IDXGIDecodeSwapChain   | 1.3   | |
 | IDXGIDisplayControl    | 1.2   | |
-| IDXGIFactory           | 1.0   | |
+| IDXGIFactory           | 1.0   | A factory object used to build DXGI objects. |
 | IDXGIAdapter 		     | 1.0   | Represents a display subsystem containing GPUs, DACs and video memory. |
-| IDXGIDevice 		     | 1.0   | |
-| IDXGIDeviceSubObject 	 | 1.0   | |
+| IDXGIDevice 		     | 1.0   | Represents an abstraction of an DXGI object that produce image data. |
+| IDXGIDeviceSubObject 	 | 1.0   | An abstraction for all objects that are tied to a DXGI device. |
 | IDXGIOutput            | 1.0   | Represents an adapter output such as monitor or television. |
 | IDXGIOutputDuplication | 1.2   | |
-| IDXGISurface           | 1.0   | |
+| IDXGISurface           | 1.0   | Represents an 2D image-data section in memory. |
 | IDXGIKeyedMutex        | 1.1   | |
-| IDXGISwapChain         | 1.0   | |
+| IDXGISwapChain         | 1.0   | Represents the swap chain for presenting surfaces to an output. |
 | IDXGIResource          | 1.0   | |
 
 ## Sources
