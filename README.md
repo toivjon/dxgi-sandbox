@@ -6,6 +6,8 @@ DXGI is used by the following DirectX versions:
 * DirectX 11
 * DirectX 12
 
+Study blog can be found here: https://hitbybits.blogspot.com/
+
 ## DXGI Versions
 
 | Version | Header    | Minimum Windows Platform    | Version Improvements |
