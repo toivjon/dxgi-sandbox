@@ -41,7 +41,7 @@ DXGI is used by the following DirectX versions:
 | IDXGISwapChain         | 1.0   | Represents a swap chain for presenting surfaces to an output. |
 | IDXGIResource          | 1.0   | Represents a shareable resource within a memory. |
 
-Some interfaces are extended where interface name is suffixed the monotonically increasing index (e.g. IDXGIAdapter3).
+Some interfaces have extension(s) where the name has been suffixed with an extension index (e.g. IDXGIAdapter3).
 
 ## Sources
 
