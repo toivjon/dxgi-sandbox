@@ -22,22 +22,24 @@ DXGI is used by the following DirectX versions:
 
 ![alt text](https://github.com/toivjon/dxgi-sandbox/blob/master/images/dxgi-interfaces.svg "DXGI Interfaces")
 
-DXGI contains the following components:
-* IDXGIAdapter
-* IDXGIDecodeSwapChain
-* IDXGIDevice
-* IDXGIDeviceSubObject
-* IDXGIDisplayControl
-* IDXGIFactory
-* IDXGIFactoryMedia
-* IDXGIKeyedMutex
-* IDXGIObject
-* IDXGIOutput
-* IDXGIOutputDuplication
-* IDXGIResource
-* IDXGISurface
-* IDXGISwapChain
-* IDXGISwapChainMedia
+| Name                   | Since | Description |
+| ---------------------- | ----- | ----------- |
+| IUnknown               | 1.0   | |
+| IDXGISwapChainMedia    | 1.3   | |
+| IDXGIFactoryMedia      | 1.3   | |
+| IDXGIOutput            | 1.0   | |
+| IDXGIDecodeSwapChain   | 1.3   | |
+| IDXGIDisplayControl    | 1.2   | |
+| IDXGIFactory           | 1.0   | |
+| IDXGIAdapter 		     | 1.0   | |
+| IDXGIDevice 		     | 1.0   | |
+| IDXGIDeviceSubObject 	 | 1.0   | |
+| IDXGIOutput            | 1.0   | |
+| IDXGIOutputDuplication | 1.2   | |
+| IDXGISurface           | 1.0   | |
+| IDXGIKeyedMutex        | 1.1   | |
+| IDXGISwapChain         | 1.0   | |
+| IDXGIResource          | 1.0   | |
 
 ## Sources
 
