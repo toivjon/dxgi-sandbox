@@ -18,6 +18,10 @@ DXGI is used by the following DirectX versions:
 |   1.5	  | dxgi1_5.h | Windows 10                  | - Support for Hich Dynamic Range (HDR)<br/> - Support for Wide Color Gamut (WCG)<br/> - Support for flexible and performant output duplication<br/> - Support for offering and reclaiming resources |
 |   1.6   | dxgi1_6.h | Windows 10                  | - Support for listening adapter enumeration change events<br/> - Support for adapter enumeration ordering prefence<br/> - Support for checking adapter synchronization object features<br/> - Support for detecting HDR display detection |
 
+## DXGI Interfaces
+
+![alt text](https://github.com/toivjon/dxgi-sandbox/blob/master/images/dxgi-interfaces.svg "DXGI Interfaces")
+
 DXGI contains the following components:
 * IDXGIAdapter
 * IDXGIDecodeSwapChain
