@@ -44,4 +44,5 @@ DXGI is used by the following DirectX versions:
 ## Sources
 
 [DXGI Documentation](https://docs.microsoft.com/fi-fi/windows/win32/direct3ddxgi/dx-graphics-dxgi)
+
 [IUnknown Documentation](https://docs.microsoft.com/en-us/windows/win32/api/unknwn/nn-unknwn-iunknown)
