@@ -11,11 +11,11 @@ DXGI is used by the following DirectX versions:
 | Version | Header    | Minimum Windows Platform    | Version Improvements |
 | ------- | --------- | --------------------------- | -------------------- |
 |   1.0	  | dxgi.h    | Windows Vista     		    | The base version. | 
-|   1.1	  | dxgi.h    | Windows Vista (SP2) 		| - Synchronized Shared Surfaces Support<br/> - High Color Support<br/> - Maximum Frame Latency Control Support<br/> - Adapter enumeration ordering<br/> - BGRA Support<br/> |
+|   1.1	  | dxgi.h    | Windows Vista (SP2) 		| - Support for synchronized shared surfaces<br/> - Support for high color<br/> - Support for maximum frame latency control<br/> - Support for adapter enumeration ordering<br/> - Support for BGRA<br/> |
 |   1.2	  | dxgi1_2.h | Windows 7 (Platform Update) | - Support for stereo swap chain<br/> - Support for flip-model swap chain<br/> - Optimization for presentations<br/> - Desktop duplication<br/> - Optimized the use of video memory<br/> - Support for 16 bpp formats<br/> - Support for debugging APIs |
 |   1.3	  | dxgi1_3.h | Windows 8.1                 | - Support for DXGI adapter memory trim<br/> - Support for multi-plane overlays<br/> - Support for overlapping and scaled swap chains<br/> - Support for selecting backbuffer subregion for swap chain<br/> - Support for lower-latency swap chain presentation |
 |   1.4	  | dxgi1_4.h | Windows 10                  | - Support for cheaper adapter enumeration<br/> - Support for video memory budget tracking<br/> - Support for invariant backbuffer identity<br/> - Support for alternate frame rendering (AFR)<br/> - Fullscreen state no longer owns the display |
-|   1.5	  | dxgi1_5.h | Windows 10                  | - Hich Dynamic Range (HDR) support<br/> - Wide Color Gamut (WCG)<br/> - Support for flexible and performant output duplication<br/> - Support for offering and reclaiming resources |
+|   1.5	  | dxgi1_5.h | Windows 10                  | - Support for Hich Dynamic Range (HDR)<br/> - Support for Wide Color Gamut (WCG)<br/> - Support for flexible and performant output duplication<br/> - Support for offering and reclaiming resources |
 |   1.6   | dxgi1_6.h | Windows 10                  | - Adapter enumeration change event tracking<br/> - Support for adapter enumeration ordering prefence<br/> - Support for checking adapter synchronization object features<br/> - Support for detecting HDR display detection |
 
 DXGI contains the following components:
