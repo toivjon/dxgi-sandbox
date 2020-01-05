@@ -24,7 +24,7 @@ DXGI is used by the following DirectX versions:
 
 | Interface Name         | Since | Description |
 | ---------------------- | ----- | ----------- |
-| IUnknown               | 1.0   | |
+| IUnknown               | 1.0   | The root interface for all COM interfaces. |
 | IDXGISwapChainMedia    | 1.3   | |
 | IDXGIFactoryMedia      | 1.3   | |
 | IDXGIOutput            | 1.0   | |
