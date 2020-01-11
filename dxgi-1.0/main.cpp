@@ -179,11 +179,7 @@ ComPtr<IDXGISwapChain> testDXGIFactory(Window& window, ComPtr<ID3D10Device> d3dD
 	return swapChain;
 }
 
-int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-	_In_opt_ HINSTANCE hPrevInstance,
-	_In_ LPWSTR    lpCmdLine,
-	_In_ int       nCmdShow)
-{
+int main() {
 	Window window(WINDOW_WIDTH, WINDOW_HEIGHT);
 	auto factory = createFactory();
 	ComPtr<IDXGIAdapter> adapter;
