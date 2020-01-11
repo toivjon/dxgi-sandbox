@@ -2,11 +2,18 @@
 #include <comdef.h>		// _com_error
 #include <string>
 
+#include "window.h"
+
 #include <dxgi.h>
+#include <d3d10.h>
 
 #pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "d3d10.lib")
 
 using namespace Microsoft::WRL; // ComPtr
+
+constexpr int WINDOW_WIDTH = 800;
+constexpr int WINDOW_HEIGHT = 600;
 
 // a utility to easily catch failed HRESULTS.
 inline void check_hresult(HRESULT result) {
@@ -92,12 +99,117 @@ void testDXGIObject(ComPtr<IDXGIObject> object) {
 	printf("parent DXGIFactory refCount: %d\n", countRefs(parent));
 }
 
-int main() {
+// ============================================================================
+// IDXGIFactory
+//
+// The main object to build different kinds of DXGI objects.
+//
+// Has following functions:
+//	 - CreateSoftwareAdapter	-- Create a custom software DXGI adapter
+//	 - CreateSwapChain			-- Create a swap chain
+//	 - EnumAdapters				-- Enumerate display adapters
+//	 - GetWindowAssociation		-- Return the associated window HWND
+//	 - MakeWindowAssociation	-- Specify DXGI window association flags
+//
+// DXGI allows one to specify how DXGI is listening for the events from the
+// specified window. Typical association allows user to use ALT+ENTER to toggle
+// fullscreen window mode and PRINT SCREEN to capture screenshot. This default
+// behavior can be changed by using the following flags in the association.
+//
+//	DXGI_MWA_NO_WINDOW_CHANGES	-- DXGI will not listen message queue at all.
+//  DXGI_MWA_NO_ALT_ENTER		-- DXGI will not respond to ALT-ENTER.
+//  DXGI_MWA_NO_PRINT_SCREEN	-- DXGI will not respond to PRINT SCREEN.
+//
+// Note that second call to MakeWindowAssociation makes DXGI to stop listening
+// the previously associated window. NOTE that association parameters should be
+// given to a window which is already attached to DXGI e.g. with swap chain.
+//
+// Note that GetWindowAssociation returns null even when theres an associaton.
+//
+// Note that for some reason window association has no effect in Windows 10.
+// ============================================================================
+ComPtr<IDXGISwapChain> testDXGIFactory(Window& window, ComPtr<ID3D10Device> d3dDevice) {
+	ComPtr<IDXGIDevice> dd;
+	check_hresult(d3dDevice->QueryInterface(IID_PPV_ARGS(&dd)));
+
+	ComPtr<IDXGIAdapter> da;
+	check_hresult(dd->GetParent(IID_PPV_ARGS(&da)));
+
+	ComPtr<IDXGIFactory> factory;
+	check_hresult(da->GetParent(IID_PPV_ARGS(&factory)));
+
+	// enumerate the system's available display adapters.
+	UINT index = 0;
+	ComPtr<IDXGIAdapter> adapter;
+	while (factory->EnumAdapters(index, &adapter) != DXGI_ERROR_NOT_FOUND) {
+		// ... do something with the adapter ...
+		index++;
+	}
+
+	// create a swap chain by associating our window to target device.
+	ComPtr<IDXGISwapChain> swapChain;
+	DXGI_SWAP_CHAIN_DESC desc = {};
+	desc.BufferCount = 2;
+	desc.BufferDesc.Width = WINDOW_WIDTH;
+	desc.BufferDesc.Height = WINDOW_HEIGHT;
+	desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	desc.BufferDesc.RefreshRate.Numerator = 60;
+	desc.BufferDesc.RefreshRate.Denominator = 1;
+	desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	desc.OutputWindow = window.hwnd();
+	desc.SampleDesc.Quality = 1;
+	desc.SampleDesc.Count = 1;
+	desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+	desc.Flags = 0;
+	desc.Windowed = true;
+	check_hresult(factory->CreateSwapChain(d3dDevice.Get(), &desc, &swapChain));
+
+	// define how DXGI will monitor window message queue.
+	// auto flags = DXGI_MWA_NO_ALT_ENTER;
+	// check_hresult(factory->MakeWindowAssociation(window.hwnd(), flags));
+
+	check_hresult(factory->MakeWindowAssociation(window.hwnd(), DXGI_MWA_NO_ALT_ENTER));
+
+	// factory->GetWindowAssociation
+	HWND hwnd;
+	check_hresult(factory->GetWindowAssociation(&hwnd));
+	printf("found hwnd: %s\n", (hwnd != nullptr ? "yes" : "no"));
+
+	// ... factory->CreateSoftwareAdapter is being skipped.
+	return swapChain;
+}
+
+int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
+	_In_opt_ HINSTANCE hPrevInstance,
+	_In_ LPWSTR    lpCmdLine,
+	_In_ int       nCmdShow)
+{
+	Window window(WINDOW_WIDTH, WINDOW_HEIGHT);
 	auto factory = createFactory();
 	ComPtr<IDXGIAdapter> adapter;
 	check_hresult(factory->EnumAdapters(0, &adapter));
 
-	testDXGIObject(adapter);
-	
+	// Hmm... we actually seem to need D3D device.
+	ComPtr<ID3D10Device> d3dDevice;
+	check_hresult(D3D10CreateDevice(
+		adapter.Get(),
+		D3D10_DRIVER_TYPE_HARDWARE,
+		nullptr,
+		0,
+		D3D10_SDK_VERSION,
+		&d3dDevice)
+	);
+
+	// testDXGIObject(adapter);
+	auto swapchain = testDXGIFactory(window, d3dDevice);
+
+	MSG msg;
+	while (GetMessage(&msg, NULL, 0, 0) > 0) {
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+
+		check_hresult(swapchain->Present(0, 0));
+	}
+
 	return 0;
 }
