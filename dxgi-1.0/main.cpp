@@ -179,7 +179,42 @@ ComPtr<IDXGISwapChain> testDXGIFactory(Window& window, ComPtr<ID3D10Device> d3dD
 	return swapChain;
 }
 
+void enumerateAdaptersAndOutputs() {
+	// note that adapters are actually enumerated when the factory is created.
+	ComPtr<IDXGIFactory> factory;
+	check_hresult(CreateDXGIFactory(IID_PPV_ARGS(&factory)));
+
+	// iterate over the enumerated adapters.
+	ComPtr<IDXGIAdapter> adapter;
+	for (auto i = 0u; factory->EnumAdapters(i, &adapter) != DXGI_ERROR_NOT_FOUND; i++) {
+		DXGI_ADAPTER_DESC adapterDesc;
+		check_hresult(adapter->GetDesc(&adapterDesc));
+		printf("found adapter with index: %d\n", i);
+		printf("\tdescription:   %ls\n", adapterDesc.Description);
+		printf("\tvendor-id:     %d\n", adapterDesc.VendorId);
+		printf("\tdevice-id:     %d\n", adapterDesc.DeviceId);
+		printf("\tsub-sys-id:    %d\n", adapterDesc.SubSysId);
+		printf("\trevision:      %d\n", adapterDesc.Revision);
+		printf("\tvideo-memory:  %u\n", adapterDesc.DedicatedVideoMemory);
+		printf("\tsystem-memory: %u\n", adapterDesc.DedicatedSystemMemory);
+		printf("\tshared-memory: %u\n", adapterDesc.SharedSystemMemory);
+		printf("\tluid:          %d:%d\n", adapterDesc.AdapterLuid.HighPart, adapterDesc.AdapterLuid.HighPart);
+
+		ComPtr<IDXGIOutput> output;
+		for (auto j = 0u; adapter->EnumOutputs(j, &output) != DXGI_ERROR_NOT_FOUND; j++) {
+			DXGI_OUTPUT_DESC outputDesc;
+			check_hresult(output->GetDesc(&outputDesc));
+			printf("\tfound output with index: %d\n", j);
+			printf("\t\tdevice-tname:     %ls\n", outputDesc.DeviceName);
+			printf("\t\tdesktop-attached: %d\n", outputDesc.AttachedToDesktop);
+		}
+	}
+}
+
 int main() {
+	enumerateAdaptersAndOutputs();
+
+	/*
 	Window window(WINDOW_WIDTH, WINDOW_HEIGHT);
 	auto factory = createFactory();
 	ComPtr<IDXGIAdapter> adapter;
@@ -206,6 +241,6 @@ int main() {
 
 		check_hresult(swapchain->Present(0, 0));
 	}
-
+	*/
 	return 0;
 }
