@@ -195,7 +195,7 @@ inline const char* swapEffectString(DXGI_SWAP_EFFECT effect) {
 // Note that GetParent may fail if trying to query parent of an object which
 // does not support them e.g. try what gets thrown with IDXGIFactory ;)
 // ============================================================================
-void testDXGIObject(ComPtr<IDXGIObject> object) {
+void testObject(ComPtr<IDXGIObject> object) {
 	// assign a custom data into the target DXGI object.
 	auto data = "foobar";
 	auto guid = createGUID();
@@ -421,7 +421,7 @@ void testAdapter(ComPtr<IDXGIAdapter> adapter) {
 //
 // Note that for some reason window association has no effect in Windows 10.
 // ============================================================================
-ComPtr<IDXGISwapChain> testDXGIFactory(Window& window, ComPtr<ID3D10Device> d3dDevice) {
+ComPtr<IDXGISwapChain> testFactory(Window& window, ComPtr<ID3D10Device> d3dDevice) {
 	ComPtr<IDXGIDevice> dd;
 	check_hresult(d3dDevice->QueryInterface(IID_PPV_ARGS(&dd)));
 
@@ -701,7 +701,8 @@ void enumerateAdaptersAndOutputs() {
 }
 
 int main() {
-	// Hmm... we actually seem to need D3D device.
+	// Hmm... we actually seem to need a window, D3D device and D3D resource for our tests.
+	Window window(WINDOW_WIDTH, WINDOW_HEIGHT);
 	ComPtr<ID3D10Device> d3dDevice;
 	check_hresult(D3D10CreateDevice(
 		0,
@@ -711,8 +712,6 @@ int main() {
 		D3D10_SDK_VERSION,
 		&d3dDevice)
 	);
-
-	// Hmm... we actually also need a resource for our tests.
 	D3D10_TEXTURE2D_DESC desc = {};
 	desc.Width = WINDOW_WIDTH;
 	desc.Height = WINDOW_HEIGHT;
@@ -729,19 +728,18 @@ int main() {
 	check_hresult(texture->QueryInterface(IID_PPV_ARGS(&resource)));
 	ComPtr<IDXGIDevice> device;
 	ComPtr<IDXGISurface> surface;
+	ComPtr<IDXGIAdapter> adapter;
 	check_hresult(texture.As(&surface));
-
 	check_hresult(d3dDevice->QueryInterface(IID_PPV_ARGS(&device)));
+	check_hresult(device->GetParent(IID_PPV_ARGS(&adapter)));
+
+	testObject(adapter);
 	testDevice(device, resource);
 	testResource(resource);
 	testSurface(surface);
-
-	Window window(WINDOW_WIDTH, WINDOW_HEIGHT);
-	auto swapchain = testDXGIFactory(window, d3dDevice);
+	auto swapchain = testFactory(window, d3dDevice);
 	testSwapChain(swapchain);
 
-	
-	// testDXGIObject(adapter);
 	/*
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0, 0) > 0) {
