@@ -531,6 +531,40 @@ void testResource(ComPtr<IDXGIResource> resource) {
 	check_hresult(resource->SetEvictionPriority(evictionPriority));
 }
 
+// ============================================================================
+// IDXGISurface
+//
+//	 - GetDesc	-- Get information about the surface
+//	 - Map		-- Get data pointer and deny GPU from accessing the surface
+//	 - Unmap	-- Release data pointer and allow GPPU to access the surface
+//
+// When data is being mapped to a surface, the surface must be locked from GPU
+// access. This happens when the Map function is being used. Mapping also takes
+// an additional flags definition that is used the specify CPU read-write flags.
+//
+//		DXGI_MAP_READ		-- Allow CPU read access.
+//		DXGI_MAP_WRITE		-- Allow CPU write access.
+//		DXGI_MAP_DISCARD	-- Discard previous contents of the surface.
+//
+// Remember always to unmap mapped resources so GPU may again have access them.
+// Note that the target resource must also have CPU access flag for the access.
+// ============================================================================
+void testSurface(ComPtr<IDXGISurface> surface) {
+	// get information about the surface.
+	DXGI_SURFACE_DESC desc;
+	check_hresult(surface->GetDesc(&desc));
+	printf("==============================================================\n");
+	printf("format: %d\n", desc.Format);
+	printf("width:  %d\n", desc.Width);
+	printf("height: %d\n", desc.Height);
+	printf("sample: %d:%d\n", desc.SampleDesc.Count, desc.SampleDesc.Quality);
+
+	// map and unmap the surface to edit the surface data.
+	DXGI_MAPPED_RECT rect = {};
+	check_hresult(surface->Map(&rect, DXGI_MAP_WRITE));
+	check_hresult(surface->Unmap());
+}
+
 void enumerateAdaptersAndOutputs() {
 	// note that adapters are actually enumerated when the factory is created.
 	ComPtr<IDXGIFactory> factory;
@@ -560,10 +594,12 @@ int main() {
 		0,
 		D3D10_DRIVER_TYPE_HARDWARE,
 		nullptr,
-		0,
+		D3D10_CREATE_DEVICE_DEBUG,
 		D3D10_SDK_VERSION,
 		&d3dDevice)
 	);
+	ComPtr<ID3D10InfoQueue> infoQueue;
+	check_hresult(d3dDevice->QueryInterface(IID_PPV_ARGS(&infoQueue)));
 
 	// Hmm... we actually also need a resource for our tests.
 	D3D10_TEXTURE2D_DESC desc = {};
@@ -573,17 +609,21 @@ int main() {
 	desc.ArraySize = 1;
 	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	desc.SampleDesc.Count = 1;
-	desc.Usage = D3D10_USAGE_DEFAULT;
-	desc.BindFlags = D3D10_BIND_RENDER_TARGET | D3D10_BIND_SHADER_RESOURCE;
+	desc.Usage = D3D10_USAGE_STAGING;
+	desc.BindFlags = 0;
+	desc.CPUAccessFlags = D3D10_CPU_ACCESS_WRITE;
 	ComPtr<ID3D10Texture2D> texture;
-	check_hresult(d3dDevice->CreateTexture2D(&desc, NULL, &texture));
+	check_hresult(d3dDevice->CreateTexture2D(&desc, nullptr, &texture));
 	ComPtr<IDXGIResource> resource;
 	check_hresult(texture->QueryInterface(IID_PPV_ARGS(&resource)));
 	ComPtr<IDXGIDevice> device;
+	ComPtr<IDXGISurface> surface;
+	check_hresult(texture.As(&surface));
 
 	check_hresult(d3dDevice->QueryInterface(IID_PPV_ARGS(&device)));
 	testDevice(device, resource);
 	testResource(resource);
+	testSurface(surface);
 
 	/*
 	// testDXGIObject(adapter);
