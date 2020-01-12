@@ -3,7 +3,7 @@ This sandbox is dedicated for my personal study about how Microsoft DirectX Grap
 
 ## Interfaces
 
-![alt text](https://github.com/toivjon/dxgi-sandbox/blob/master/dxgi-1.0/images/dxgi-interfaces-1.0.png "DXGI 1.0 Interfaces")
+![alt text](https://github.com/toivjon/dxgi-sandbox/blob/master/dxgi-1.0/images/dxgi-interfaces-1.0.svg "DXGI 1.0 Interfaces")
 
 | Interface Name         | Description |
 | ---------------------- | ----------- |
