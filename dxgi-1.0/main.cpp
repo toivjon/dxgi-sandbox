@@ -229,86 +229,6 @@ void testDXGIObject(ComPtr<IDXGIObject> object) {
 }
 
 // ============================================================================
-// IDXGIFactory
-//
-// The main object to build different kinds of DXGI objects.
-//
-// Has following functions:
-//	 - CreateSoftwareAdapter	-- Create a custom software DXGI adapter
-//	 - CreateSwapChain			-- Create a swap chain
-//	 - EnumAdapters				-- Enumerate display adapters
-//	 - GetWindowAssociation		-- Return the associated window HWND
-//	 - MakeWindowAssociation	-- Specify DXGI window association flags
-//
-// DXGI allows one to specify how DXGI is listening for the events from the
-// specified window. Typical association allows user to use ALT+ENTER to toggle
-// fullscreen window mode and PRINT SCREEN to capture screenshot. This default
-// behavior can be changed by using the following flags in the association.
-//
-//	DXGI_MWA_NO_WINDOW_CHANGES	-- DXGI will not listen message queue at all.
-//  DXGI_MWA_NO_ALT_ENTER		-- DXGI will not respond to ALT-ENTER.
-//  DXGI_MWA_NO_PRINT_SCREEN	-- DXGI will not respond to PRINT SCREEN.
-//
-// Note that second call to MakeWindowAssociation makes DXGI to stop listening
-// the previously associated window. NOTE that association parameters should be
-// given to a window which is already attached to DXGI e.g. with swap chain.
-//
-// Note that GetWindowAssociation returns null even when theres an associaton.
-//
-// Note that for some reason window association has no effect in Windows 10.
-// ============================================================================
-ComPtr<IDXGISwapChain> testDXGIFactory(Window& window, ComPtr<ID3D10Device> d3dDevice) {
-	ComPtr<IDXGIDevice> dd;
-	check_hresult(d3dDevice->QueryInterface(IID_PPV_ARGS(&dd)));
-
-	ComPtr<IDXGIAdapter> da;
-	check_hresult(dd->GetParent(IID_PPV_ARGS(&da)));
-
-	ComPtr<IDXGIFactory> factory;
-	check_hresult(da->GetParent(IID_PPV_ARGS(&factory)));
-
-	// enumerate the system's available display adapters.
-	UINT index = 0;
-	ComPtr<IDXGIAdapter> adapter;
-	while (factory->EnumAdapters(index, &adapter) != DXGI_ERROR_NOT_FOUND) {
-		// ... do something with the adapter ...
-		index++;
-	}
-
-	// create a swap chain by associating our window to target device.
-	ComPtr<IDXGISwapChain> swapChain;
-	DXGI_SWAP_CHAIN_DESC desc = {};
-	desc.BufferCount = 2;
-	desc.BufferDesc.Width = WINDOW_WIDTH;
-	desc.BufferDesc.Height = WINDOW_HEIGHT;
-	desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	desc.BufferDesc.RefreshRate.Numerator = 60;
-	desc.BufferDesc.RefreshRate.Denominator = 1;
-	desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	desc.OutputWindow = window.hwnd();
-	desc.SampleDesc.Quality = 0;
-	desc.SampleDesc.Count = 1;
-	desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
-	desc.Flags = 0;
-	desc.Windowed = true;
-	check_hresult(factory->CreateSwapChain(d3dDevice.Get(), &desc, &swapChain));
-
-	// define how DXGI will monitor window message queue.
-	// auto flags = DXGI_MWA_NO_ALT_ENTER;
-	// check_hresult(factory->MakeWindowAssociation(window.hwnd(), flags));
-
-	check_hresult(factory->MakeWindowAssociation(window.hwnd(), DXGI_MWA_NO_ALT_ENTER));
-
-	// factory->GetWindowAssociation
-	HWND hwnd;
-	check_hresult(factory->GetWindowAssociation(&hwnd));
-	printf("found hwnd: %s\n", (hwnd != nullptr ? "yes" : "no"));
-
-	// ... factory->CreateSoftwareAdapter is being skipped.
-	return swapChain;
-}
-
-// ============================================================================
 // IDXGIOutput
 //
 //   - GetDesc						-- Get information about the output
@@ -473,6 +393,83 @@ void testAdapter(ComPtr<IDXGIAdapter> adapter) {
 	for (auto i = 0u; adapter->EnumOutputs(i, &output) != DXGI_ERROR_NOT_FOUND; i++) {
 		testOutput(output);
 	}
+}
+
+// ============================================================================
+// IDXGIFactory
+//
+//	 - CreateSoftwareAdapter	-- Create a custom software DXGI adapter
+//	 - CreateSwapChain			-- Create a swap chain
+//	 - EnumAdapters				-- Enumerate display adapters
+//	 - GetWindowAssociation		-- Return the associated window HWND
+//	 - MakeWindowAssociation	-- Specify DXGI window association flags
+//
+// DXGI allows one to specify how DXGI is listening for the events from the
+// specified window. Typical association allows user to use ALT+ENTER to toggle
+// fullscreen window mode and PRINT SCREEN to capture screenshot. This default
+// behavior can be changed by using the following flags in the association.
+//
+//	DXGI_MWA_NO_WINDOW_CHANGES	-- DXGI will not listen message queue at all.
+//  DXGI_MWA_NO_ALT_ENTER		-- DXGI will not respond to ALT-ENTER.
+//  DXGI_MWA_NO_PRINT_SCREEN	-- DXGI will not respond to PRINT SCREEN.
+//
+// Note that second call to MakeWindowAssociation makes DXGI to stop listening
+// the previously associated window. NOTE that association parameters should be
+// given to a window which is already attached to DXGI e.g. with swap chain.
+//
+// Note that GetWindowAssociation returns null even when theres an associaton.
+//
+// Note that for some reason window association has no effect in Windows 10.
+// ============================================================================
+ComPtr<IDXGISwapChain> testDXGIFactory(Window& window, ComPtr<ID3D10Device> d3dDevice) {
+	ComPtr<IDXGIDevice> dd;
+	check_hresult(d3dDevice->QueryInterface(IID_PPV_ARGS(&dd)));
+
+	ComPtr<IDXGIAdapter> da;
+	check_hresult(dd->GetParent(IID_PPV_ARGS(&da)));
+
+	ComPtr<IDXGIFactory> factory;
+	check_hresult(da->GetParent(IID_PPV_ARGS(&factory)));
+
+	// enumerate the system's available display adapters.
+	UINT index = 0;
+	ComPtr<IDXGIAdapter> adapter;
+	while (factory->EnumAdapters(index, &adapter) != DXGI_ERROR_NOT_FOUND) {
+		testAdapter(adapter);
+		index++;
+	}
+
+	// create a swap chain by associating our window to target device.
+	ComPtr<IDXGISwapChain> swapChain;
+	DXGI_SWAP_CHAIN_DESC desc = {};
+	desc.BufferCount = 2;
+	desc.BufferDesc.Width = WINDOW_WIDTH;
+	desc.BufferDesc.Height = WINDOW_HEIGHT;
+	desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	desc.BufferDesc.RefreshRate.Numerator = 60;
+	desc.BufferDesc.RefreshRate.Denominator = 1;
+	desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	desc.OutputWindow = window.hwnd();
+	desc.SampleDesc.Quality = 0;
+	desc.SampleDesc.Count = 1;
+	desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+	desc.Flags = 0;
+	desc.Windowed = true;
+	check_hresult(factory->CreateSwapChain(d3dDevice.Get(), &desc, &swapChain));
+
+	// define how DXGI will monitor window message queue.
+	// auto flags = DXGI_MWA_NO_ALT_ENTER;
+	// check_hresult(factory->MakeWindowAssociation(window.hwnd(), flags));
+
+	check_hresult(factory->MakeWindowAssociation(window.hwnd(), DXGI_MWA_NO_ALT_ENTER));
+
+	// factory->GetWindowAssociation
+	HWND hwnd;
+	check_hresult(factory->GetWindowAssociation(&hwnd));
+	printf("found hwnd: %s\n", (hwnd != nullptr ? "yes" : "no"));
+
+	// ... factory->CreateSoftwareAdapter is being skipped.
+	return swapChain;
 }
 
 // ============================================================================
@@ -703,17 +700,7 @@ void enumerateAdaptersAndOutputs() {
 	}
 }
 
-
 int main() {
-	enumerateAdaptersAndOutputs();
-
-	/*
-	
-	auto factory = createFactory();
-	ComPtr<IDXGIAdapter> adapter;
-	check_hresult(factory->EnumAdapters(0, &adapter));
-	*/
-
 	// Hmm... we actually seem to need D3D device.
 	ComPtr<ID3D10Device> d3dDevice;
 	check_hresult(D3D10CreateDevice(
@@ -724,8 +711,6 @@ int main() {
 		D3D10_SDK_VERSION,
 		&d3dDevice)
 	);
-	ComPtr<ID3D10InfoQueue> infoQueue;
-	check_hresult(d3dDevice->QueryInterface(IID_PPV_ARGS(&infoQueue)));
 
 	// Hmm... we actually also need a resource for our tests.
 	D3D10_TEXTURE2D_DESC desc = {};
