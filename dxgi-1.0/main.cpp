@@ -1,6 +1,7 @@
 #include <wrl/client.h> // ComPtr
 #include <comdef.h>		// _com_error
 #include <string>
+#include <vector>
 
 #include "window.h"
 
@@ -74,6 +75,39 @@ inline std::string rectString(RECT& rect) {
 // a utility to convert DWORD into a boolean string.
 inline const char* boolString(DWORD value) {
 	return value == 0 ? "false" : "true";
+}
+
+// a utility to convert BOOL into a boolean string.
+inline const char* boolString(BOOL value) {
+	return value == 0 ? "false" : "true";
+}
+
+inline const char* scalingString(DXGI_MODE_SCALING mode) {
+	switch (mode) {
+	case DXGI_MODE_SCALING_CENTERED:
+		return "centered";
+	case DXGI_MODE_SCALING_STRETCHED:
+		return "stretched";
+	case DXGI_MODE_SCALING_UNSPECIFIED:
+		return "unspecified";
+	default:
+		return "unknown";
+	}
+}
+
+inline const char* scanlineOrderingString(DXGI_MODE_SCANLINE_ORDER mode) {
+	switch (mode) {
+	case DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST:
+		return "lower-field-first";
+	case DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE:
+		return "progressive";
+	case DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED:
+		return "unspecified";
+	case DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST:
+		return "upper-field-first";
+	default:
+		return "unknown";
+	}
 }
 
 // ============================================================================
@@ -216,12 +250,38 @@ ComPtr<IDXGISwapChain> testDXGIFactory(Window& window, ComPtr<ID3D10Device> d3dD
 // ============================================================================
 // IDXGIOutput
 //
-//   - GetDesc -- Get information about the output
-//   - 
+//   - GetDesc						-- Get information about the output
+//   - GetFrameStatistics			-- Get information about rendered frames
+//	 - GetGammaControlCapabilities	-- Get information about gamma controls
+//   - ReleaseOwnership				-- [WARNING] Release the target output
+//   - TakeOwnership				-- [WARNING] Captures the target output
+//	 - GetGammaControl				-- Get the definitions for gamma
+//	 - SetGammaControl				-- Set the definitions for gamma
+//	 - GetDisplaySurface			-- Get the display surface
+//	 - SetDisplaySurface			-- [WARNING] Set the display surface
+//	 - WaitForVBlank				-- Wait for the next vertical blank
+//	 - FindClosestMatchingMode		-- Find closest mode for desired mode
+//	 - GetDisplayModeList			-- Find the list of modes
 //
 // Note that some additional information can be gathered by querying the output
 // information with GetMonitorInfo with the DXGI_OUTPUT_DESC.HMONITOR handle.
 // Most of the information is however already present in the DXGI_OUTPUT_DESC.
+//
+// Note that the TakeOwnership and RelaseOwnership are not typically used with
+// an application that uses a swap chain to present rendering. DXGI knows how
+// to automatically perform capture and release when swap chains are used. If
+// still called manually, the application may have unpredictable behavior.
+//
+// [WARNING] Following methods can be only used when ouput is in fullscreen.
+//
+//		GetGammaControlCapabilities
+//		GetGammaControl
+//		SetGammaControl
+//		GetDisplaySurface
+//		SetDisplaySurface
+//
+// Note that SetDisplaySurface is not manually used with an application which
+// uses swap chain for presenting. DXGI knows how to automatically use them.
 // ============================================================================
 void testOutput(ComPtr<IDXGIOutput> output) {
 	// get and print information about the output.
@@ -229,7 +289,7 @@ void testOutput(ComPtr<IDXGIOutput> output) {
 	check_hresult(output->GetDesc(&desc));
 	printf("==============================================================\n");
 	printf("name:          %ls\n", desc.DeviceName);
-	printf("hasDesktop:    %s\n", (desc.AttachedToDesktop ? "yes" : "no"));
+	printf("hasDesktop:    %s\n", boolString(desc.AttachedToDesktop));
 	printf("rotation:      %s\n", rotationString(desc.Rotation));
 	printf("desktopCoords: %s\n", rectString(desc.DesktopCoordinates).c_str());
 
@@ -243,19 +303,77 @@ void testOutput(ComPtr<IDXGIOutput> output) {
 		printf("isPrimary:     %s\n", boolString(info.dwFlags & MONITORINFOF_PRIMARY));
 	}
 
-	/*
-	output->FindClosestMatchingMode();
-	output->GetDisplayModeList();
-	output->GetDisplaySurfaceData();
-	output->GetFrameStatistics();
-	output->GetGammaControl();
-	output->GetGammaControlCapabilities();
-	output->ReleaseOwnership();
-	output->SetDisplaySurface();
-	output->SetGammaControl();
-	output->TakeOwnership();
-	output->WaitForVBlank();
+	// wait until the output makes next vertical blank call.
+	check_hresult(output->WaitForVBlank());
+
+	// enumerate the available display modes for the target format.
+	UINT modeCount = 0;
+	auto format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	check_hresult(output->GetDisplayModeList(format, 0, &modeCount, nullptr));
+	std::vector<DXGI_MODE_DESC> modes(modeCount);
+	check_hresult(output->GetDisplayModeList(format, 0, &modeCount, &modes[0]));
+	printf("display modes for format R8G8B8A8_UNORM:\n");
+	for (auto mode : modes) {
+		printf("  %dx%d\t\t%d/%d\tscaling: %s\t\tscanline-ordering: %s\n",
+			mode.Width, mode.Height,
+			mode.RefreshRate.Numerator, mode.RefreshRate.Denominator,
+			scalingString(mode.Scaling),
+			scanlineOrderingString(mode.ScanlineOrdering)
+			);
+	}
+
+	// a utility to find the closest matching display mode for a desired mode.
+	DXGI_MODE_DESC desiredMode;
+	DXGI_MODE_DESC closestMode;
+	desiredMode.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	desiredMode.Width = 800;
+	desiredMode.Height = 600;
+	desiredMode.Scaling = DXGI_MODE_SCALING_CENTERED;
+	desiredMode.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE;
+	check_hresult(output->FindClosestMatchingMode(&desiredMode, &closestMode, nullptr));
+	printf("found the following closest matching mode for R8G8B8A8 UNORM 800 x 600:\n");
+	printf("  %dx%d\t\t%d/%d\tscaling: %s\t\tscanline-ordering: %s\n",
+		closestMode.Width, closestMode.Height,
+		closestMode.RefreshRate.Numerator, closestMode.RefreshRate.Denominator,
+		scalingString(closestMode.Scaling),
+		scanlineOrderingString(closestMode.ScanlineOrdering)
+	);
+
+	// get the gamma control settings (only when fullscreen).
+	/* these can be only managed when output is in fullscreen mode
+	DXGI_GAMMA_CONTROL gammaControl;
+	check_hresult(output->GetGammaControl(&gammaControl));
+	check_hresult(output->SetGammaControl(&gammaControl));
 	*/
+
+	// get information about recently rendered frames.
+	/* check how this works.... now it just returns error
+	DXGI_FRAME_STATISTICS stats;
+	check_hresult(output->GetFrameStatistics(&stats));
+	printf("stats.presentCount:        %d\n", stats.PresentCount);
+	printf("stats.presentRefreshCount: %d\n", stats.PresentRefreshCount);
+	printf("stats.syncGPUTime:		   %lld\n", stats.SyncGPUTime.QuadPart);
+	printf("stats.syncQPCTime:		   %lld\n", stats.SyncQPCTime.QuadPart);
+	printf("stats.syncRefreshCount:    %d\n", stats.SyncRefreshCount);
+	*/
+
+	// get details about the output's gamma control capabilities (only when fullscreen).
+	/* these can be only queried when output is in fullscreen mode
+	DXGI_GAMMA_CONTROL_CAPABILITIES caps;
+	check_hresult(output->GetGammaControlCapabilities(&caps));
+	printf("gammaCaps.maxConvertedValue:     %0.2f\n", caps.MaxConvertedValue);
+	printf("gammaCaps.minConvertedValue:     %0.2f\n", caps.MinConvertedValue);
+	printf("gammaCaps.numGammaControlPoints: %d\n", caps.NumGammaControlPoints);
+	printf("gammaCaps.scaleAndOffsetSupport: %s\n", boolString(caps.ScaleAndOffsetSupported));
+	*/
+
+	// these can be only used when output is in fullscreen mode
+	// output->GetDisplaySurfaceData();
+	// output->SetDisplaySurface
+
+	// [WARNING] not testing the following methods as they have unpredictable results.
+	// output->TakeOwnership()
+	// output->ReleaseOwnership()
 }
 
 // ============================================================================
@@ -273,6 +391,7 @@ void testAdapter(ComPtr<IDXGIAdapter> adapter) {
 	// get and print information about the adapter.
 	DXGI_ADAPTER_DESC desc;
 	check_hresult(adapter->GetDesc(&desc));
+	printf("==============================================================\n");
 	printf("description:   %ls\n", desc.Description);
 	printf("vendor-id:     %d\n", desc.VendorId);
 	printf("device-id:     %d\n", desc.DeviceId);
