@@ -42,6 +42,40 @@ UINT countRefs(ComPtr<IUnknown> object) {
 	return object->Release();
 }
 
+// a utility to convert DXGI_MODE_ROTATION into a descriptive string.
+inline const char* rotationString(DXGI_MODE_ROTATION rotation) {
+	switch (rotation) {
+	case DXGI_MODE_ROTATION_IDENTITY:
+		return "identity";
+	case DXGI_MODE_ROTATION_ROTATE180:
+		return "rotate-180";
+	case DXGI_MODE_ROTATION_ROTATE270:
+		return "rotate-270";
+	case DXGI_MODE_ROTATION_ROTATE90:
+		return "rotate-90";
+	case DXGI_MODE_ROTATION_UNSPECIFIED:
+		return "unspecified";
+	default:
+		return "unknown";
+	}
+}
+
+// a utility to convert RECT into a descriptive string.
+inline std::string rectString(RECT& rect) {
+	std::string str = "{";
+	str += "top: " + std::to_string(rect.top);
+	str += ", right: " + std::to_string(rect.right);
+	str += ", bottom: " + std::to_string(rect.bottom);
+	str += ", left: " + std::to_string(rect.left);
+	str += "}";
+	return str;
+}
+
+// a utility to convert DWORD into a boolean string.
+inline const char* boolString(DWORD value) {
+	return value == 0 ? "false" : "true";
+}
+
 // ============================================================================
 // IDXGIObject
 //
@@ -179,6 +213,88 @@ ComPtr<IDXGISwapChain> testDXGIFactory(Window& window, ComPtr<ID3D10Device> d3dD
 	return swapChain;
 }
 
+// ============================================================================
+// IDXGIOutput
+//
+//   - GetDesc -- Get information about the output
+//   - 
+//
+// Note that some additional information can be gathered by querying the output
+// information with GetMonitorInfo with the DXGI_OUTPUT_DESC.HMONITOR handle.
+// Most of the information is however already present in the DXGI_OUTPUT_DESC.
+// ============================================================================
+void testOutput(ComPtr<IDXGIOutput> output) {
+	// get and print information about the output.
+	DXGI_OUTPUT_DESC desc;
+	check_hresult(output->GetDesc(&desc));
+	printf("==============================================================\n");
+	printf("name:          %ls\n", desc.DeviceName);
+	printf("hasDesktop:    %s\n", (desc.AttachedToDesktop ? "yes" : "no"));
+	printf("rotation:      %s\n", rotationString(desc.Rotation));
+	printf("desktopCoords: %s\n", rectString(desc.DesktopCoordinates).c_str());
+
+	// get additional details from the HMONITOR pointer.
+	MONITORINFOEX info = {};
+	info.cbSize = sizeof(MONITORINFOEX);
+	if (GetMonitorInfo(desc.Monitor, &info) != 0) {
+		printf("device:        %ls\n", info.szDevice);
+		printf("monitorCoords: %s\n", rectString(info.rcMonitor).c_str());
+		printf("workCoords:    %s\n", rectString(info.rcWork).c_str());
+		printf("isPrimary:     %s\n", boolString(info.dwFlags & MONITORINFOF_PRIMARY));
+	}
+
+	/*
+	output->FindClosestMatchingMode();
+	output->GetDisplayModeList();
+	output->GetDisplaySurfaceData();
+	output->GetFrameStatistics();
+	output->GetGammaControl();
+	output->GetGammaControlCapabilities();
+	output->ReleaseOwnership();
+	output->SetDisplaySurface();
+	output->SetGammaControl();
+	output->TakeOwnership();
+	output->WaitForVBlank();
+	*/
+}
+
+// ============================================================================
+// IDXGIAdapter
+//
+//   - EnumOutputs			 -- Enumerate attached outputs (e.g. monitors)
+//   - GetDesc				 -- Get information about the adapter
+//   - CheckInterfaceSupport -- Check if adapter supports target D3D 10 device
+//
+// Note that CheckInterfaceSupport only works when checking againts Direct3D 10
+// device interfaces (e.g. D3D10Device). If used with Direct3D 11 or later, this
+// function will return DXGI_ERROR_UNSUPPORTED (see the documentation remarks).
+// ============================================================================
+void testAdapter(ComPtr<IDXGIAdapter> adapter) {
+	// get and print information about the adapter.
+	DXGI_ADAPTER_DESC desc;
+	check_hresult(adapter->GetDesc(&desc));
+	printf("description:   %ls\n", desc.Description);
+	printf("vendor-id:     %d\n", desc.VendorId);
+	printf("device-id:     %d\n", desc.DeviceId);
+	printf("sub-sys-id:    %d\n", desc.SubSysId);
+	printf("revision:      %d\n", desc.Revision);
+	printf("video-memory:  %u\n", desc.DedicatedVideoMemory);
+	printf("system-memory: %u\n", desc.DedicatedSystemMemory);
+	printf("shared-memory: %u\n", desc.SharedSystemMemory);
+	printf("luid:          %d:%d\n", desc.AdapterLuid.HighPart, desc.AdapterLuid.HighPart);
+
+	// check whether the adapter supports Direct3D 10 and get the driver version.
+	LARGE_INTEGER version;
+	check_hresult(adapter->CheckInterfaceSupport(__uuidof(ID3D10Device), &version));
+	printf("D3D-10 driver: %d.%d\n", version.HighPart, version.LowPart);
+
+	// iterate over the enumerated outputs.
+	ComPtr<IDXGIOutput> output;
+	for (auto i = 0u; adapter->EnumOutputs(i, &output) != DXGI_ERROR_NOT_FOUND; i++) {
+		testOutput(output);
+	}
+}
+
 void enumerateAdaptersAndOutputs() {
 	// note that adapters are actually enumerated when the factory is created.
 	ComPtr<IDXGIFactory> factory;
@@ -187,29 +303,10 @@ void enumerateAdaptersAndOutputs() {
 	// iterate over the enumerated adapters.
 	ComPtr<IDXGIAdapter> adapter;
 	for (auto i = 0u; factory->EnumAdapters(i, &adapter) != DXGI_ERROR_NOT_FOUND; i++) {
-		DXGI_ADAPTER_DESC adapterDesc;
-		check_hresult(adapter->GetDesc(&adapterDesc));
-		printf("found adapter with index: %d\n", i);
-		printf("\tdescription:   %ls\n", adapterDesc.Description);
-		printf("\tvendor-id:     %d\n", adapterDesc.VendorId);
-		printf("\tdevice-id:     %d\n", adapterDesc.DeviceId);
-		printf("\tsub-sys-id:    %d\n", adapterDesc.SubSysId);
-		printf("\trevision:      %d\n", adapterDesc.Revision);
-		printf("\tvideo-memory:  %u\n", adapterDesc.DedicatedVideoMemory);
-		printf("\tsystem-memory: %u\n", adapterDesc.DedicatedSystemMemory);
-		printf("\tshared-memory: %u\n", adapterDesc.SharedSystemMemory);
-		printf("\tluid:          %d:%d\n", adapterDesc.AdapterLuid.HighPart, adapterDesc.AdapterLuid.HighPart);
-
-		ComPtr<IDXGIOutput> output;
-		for (auto j = 0u; adapter->EnumOutputs(j, &output) != DXGI_ERROR_NOT_FOUND; j++) {
-			DXGI_OUTPUT_DESC outputDesc;
-			check_hresult(output->GetDesc(&outputDesc));
-			printf("\tfound output with index: %d\n", j);
-			printf("\t\tdevice-tname:     %ls\n", outputDesc.DeviceName);
-			printf("\t\tdesktop-attached: %d\n", outputDesc.AttachedToDesktop);
-		}
+		testAdapter(adapter);
 	}
 }
+
 
 int main() {
 	enumerateAdaptersAndOutputs();
