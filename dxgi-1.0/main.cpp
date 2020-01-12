@@ -82,6 +82,7 @@ inline const char* boolString(BOOL value) {
 	return value == 0 ? "false" : "true";
 }
 
+// a utility to get string presentation of DXGI_MODE_SCALING.
 inline const char* scalingString(DXGI_MODE_SCALING mode) {
 	switch (mode) {
 	case DXGI_MODE_SCALING_CENTERED:
@@ -95,6 +96,7 @@ inline const char* scalingString(DXGI_MODE_SCALING mode) {
 	}
 }
 
+// a utility to get string presentation of DXGI_MODE_SCANLINE_ORDER.
 inline const char* scanlineOrderingString(DXGI_MODE_SCANLINE_ORDER mode) {
 	switch (mode) {
 	case DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST:
@@ -105,6 +107,20 @@ inline const char* scanlineOrderingString(DXGI_MODE_SCANLINE_ORDER mode) {
 		return "unspecified";
 	case DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST:
 		return "upper-field-first";
+	default:
+		return "unknown";
+	}
+}
+
+// a utility to get string presentation of DXGI_RESIDENCY.
+inline const char* residencyString(DXGI_RESIDENCY residency) {
+	switch (residency) {
+	case DXGI_RESIDENCY_EVICTED_TO_DISK:
+		return "evicted-to-disk";
+	case DXGI_RESIDENCY_FULLY_RESIDENT:
+		return "fully-resident";
+	case DXGI_RESIDENCY_RESIDENT_IN_SHARED_MEMORY:
+		return "in-shared-memory";
 	default:
 		return "unknown";
 	}
@@ -414,6 +430,45 @@ void testAdapter(ComPtr<IDXGIAdapter> adapter) {
 	}
 }
 
+// ============================================================================
+// IDXGIDevice
+//
+//	 - GetAdapter				-- Get the wrapped adapter
+//	 - CreateSurface			-- [WARNING] create surface
+//	 - QueryResourceResidency	-- Get info how target resources reside
+//	 - SetGPUThreadPriority		-- Set the GPU thread priority
+//	 - GetGPUThreadPriority		-- Get the GPU thread priority
+//
+// [WARNING] CreateSurface function should not be used manually. DXGI will know
+// how to use it automatically whenever there is a possible need to use it.
+//
+// GPU priorities vary from -7 to 7, where 0 presents the normal priority. Note
+// that this function should be only used when application is fully profiled to
+// ensure that it behaves as intended. Otherwise, poor render speed can occur.
+//
+// QueryResourceResidency can be used to determine how and where the target
+// resources are being currently located. These IDXGIResources can be found
+// by querying the D3D generated resource with the QueryInterface function.
+// ============================================================================
+void testDevice(ComPtr<IDXGIDevice> device, ComPtr<IDXGIResource> resource) {
+	// get a reference to the wrapped DXGI adapter interface.
+	ComPtr<IDXGIAdapter> adapter;
+	check_hresult(device->GetAdapter(&adapter));
+	printf("device-adapter found: %s\n", (adapter ? "yes" : "no"));
+
+	// get and set the GPU thread priority.
+	auto gpuPriority = 0;
+	check_hresult(device->GetGPUThreadPriority(&gpuPriority));
+	printf("device-gpu-priority:  %d\n", gpuPriority);
+	check_hresult(device->SetGPUThreadPriority(gpuPriority));
+
+	// get the residence status of the target resources.
+	IUnknown* resources = { resource.Get() };
+	DXGI_RESIDENCY residencies[1];
+	check_hresult(device->QueryResourceResidency(&resources, residencies, 1));
+	printf("resource-residency: %s\n", residencyString(residencies[0]));
+}
+
 void enumerateAdaptersAndOutputs() {
 	// note that adapters are actually enumerated when the factory is created.
 	ComPtr<IDXGIFactory> factory;
@@ -435,11 +490,12 @@ int main() {
 	auto factory = createFactory();
 	ComPtr<IDXGIAdapter> adapter;
 	check_hresult(factory->EnumAdapters(0, &adapter));
+	*/
 
 	// Hmm... we actually seem to need D3D device.
 	ComPtr<ID3D10Device> d3dDevice;
 	check_hresult(D3D10CreateDevice(
-		adapter.Get(),
+		0,
 		D3D10_DRIVER_TYPE_HARDWARE,
 		nullptr,
 		0,
@@ -447,6 +503,26 @@ int main() {
 		&d3dDevice)
 	);
 
+	// Hmm... we actually also need a resource for our tests.
+	D3D10_TEXTURE2D_DESC desc = {};
+	desc.Width = WINDOW_WIDTH;
+	desc.Height = WINDOW_HEIGHT;
+	desc.MipLevels = 1;
+	desc.ArraySize = 1;
+	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	desc.SampleDesc.Count = 1;
+	desc.Usage = D3D10_USAGE_DEFAULT;
+	desc.BindFlags = D3D10_BIND_RENDER_TARGET | D3D10_BIND_SHADER_RESOURCE;
+	ComPtr<ID3D10Texture2D> texture;
+	check_hresult(d3dDevice->CreateTexture2D(&desc, NULL, &texture));
+	ComPtr<IDXGIResource> resource;
+	check_hresult(texture->QueryInterface(IID_PPV_ARGS(&resource)));
+	ComPtr<IDXGIDevice> device;
+
+	check_hresult(d3dDevice->QueryInterface(IID_PPV_ARGS(&device)));
+	testDevice(device, resource);
+
+	/*
 	// testDXGIObject(adapter);
 	auto swapchain = testDXGIFactory(window, d3dDevice);
 
