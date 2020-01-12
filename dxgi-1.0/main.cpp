@@ -11,6 +11,8 @@
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3d10.lib")
 
+#define CHECK_BIT(x, bit) (x & bit) != 0
+
 using namespace Microsoft::WRL; // ComPtr
 
 constexpr int WINDOW_WIDTH = 800;
@@ -124,6 +126,33 @@ inline const char* residencyString(DXGI_RESIDENCY residency) {
 	default:
 		return "unknown";
 	}
+}
+
+// a utility to get string presentation of DXGI_USAGE.
+inline std::string usageString(DXGI_USAGE usage) {
+	std::string result;
+	if (CHECK_BIT(usage, DXGI_USAGE_BACK_BUFFER)) {
+		result += "[back-buffer]";
+	}
+	if (CHECK_BIT(usage, DXGI_USAGE_DISCARD_ON_PRESENT)) {
+		result += "[discard-on-present]";
+	}
+	if (CHECK_BIT(usage, DXGI_USAGE_READ_ONLY)) {
+		result += "[read-only]";
+	}
+	if (CHECK_BIT(usage, DXGI_USAGE_RENDER_TARGET_OUTPUT)) {
+		result += "[render-target-output]";
+	}
+	if (CHECK_BIT(usage, DXGI_USAGE_SHADER_INPUT)) {
+		result += "[shared-input]";
+	}
+	if (CHECK_BIT(usage, DXGI_USAGE_SHARED)) {
+		result += "[shared]";
+	}
+	if (CHECK_BIT(usage, DXGI_USAGE_UNORDERED_ACCESS)) {
+		result += "[unordered-access]";
+	}
+	return result;
 }
 
 // ============================================================================
@@ -469,6 +498,39 @@ void testDevice(ComPtr<IDXGIDevice> device, ComPtr<IDXGIResource> resource) {
 	printf("resource-residency: %s\n", residencyString(residencies[0]));
 }
 
+// ============================================================================
+// IDXGIResource
+//
+//	 - GetSharedHandle		-- Get the handle to shared resource
+//	 - GetUsage				-- Get the expected resource usage
+//	 - SetEvictionPolicy	-- Set the memory eviction policy
+//	 - GetEvictionPolicy	-- Get the current memory eviction policy
+//
+// Starting from Direct3D 11.1 GetSharedHandle should not be used anymore. The
+// IDXGIResource1::CreatedSharedHandle should be used to get new shared handle.
+//
+// Note that eviction value can vary between DXGI_RRESOURCE_PRIORITY_MINIMUM to
+// DXGI_RESOURCE_EVICTION_PRIORITY_MAXIMUM. There are some existing enumeration
+// values defined, but values other than enumerations are used when approriate.
+// ============================================================================
+void testResource(ComPtr<IDXGIResource> resource) {
+	// get the handle to shared resource.
+	HANDLE handle;
+	check_hresult(resource->GetSharedHandle(&handle));
+	printf("hasSharedHandle:  %s\n", (handle ? "yes": "no"));
+
+	// get the expected resource usage.
+	DXGI_USAGE usage;
+	check_hresult(resource->GetUsage(&usage));
+	printf("usage:            %s\n", usageString(usage).c_str());
+
+	// get and set the memory eviction priority.
+	UINT evictionPriority;
+	check_hresult(resource->GetEvictionPriority(&evictionPriority));
+	printf("evictionPriority: %d\n", evictionPriority);
+	check_hresult(resource->SetEvictionPriority(evictionPriority));
+}
+
 void enumerateAdaptersAndOutputs() {
 	// note that adapters are actually enumerated when the factory is created.
 	ComPtr<IDXGIFactory> factory;
@@ -521,6 +583,7 @@ int main() {
 
 	check_hresult(d3dDevice->QueryInterface(IID_PPV_ARGS(&device)));
 	testDevice(device, resource);
+	testResource(resource);
 
 	/*
 	// testDXGIObject(adapter);
