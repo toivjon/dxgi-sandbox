@@ -155,6 +155,22 @@ inline std::string usageString(DXGI_USAGE usage) {
 	return result;
 }
 
+// a utility to get string presentation of DXGI_SWAP_EFFECT.
+inline const char* swapEffectString(DXGI_SWAP_EFFECT effect) {
+	switch (effect) {
+	case DXGI_SWAP_EFFECT_DISCARD:
+		return "discard";
+	case DXGI_SWAP_EFFECT_FLIP_DISCARD:
+		return "flip-discard";
+	case DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL:
+		return "flip-sequential";
+	case DXGI_SWAP_EFFECT_SEQUENTIAL:
+		return "sequential";
+	default:
+		return "unknown";
+	}
+}
+
 // ============================================================================
 // IDXGIObject
 //
@@ -270,9 +286,9 @@ ComPtr<IDXGISwapChain> testDXGIFactory(Window& window, ComPtr<ID3D10Device> d3dD
 	desc.BufferDesc.RefreshRate.Denominator = 1;
 	desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	desc.OutputWindow = window.hwnd();
-	desc.SampleDesc.Quality = 1;
+	desc.SampleDesc.Quality = 0;
 	desc.SampleDesc.Count = 1;
-	desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+	desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 	desc.Flags = 0;
 	desc.Windowed = true;
 	check_hresult(factory->CreateSwapChain(d3dDevice.Get(), &desc, &swapChain));
@@ -565,6 +581,116 @@ void testSurface(ComPtr<IDXGISurface> surface) {
 	check_hresult(surface->Unmap());
 }
 
+// ============================================================================
+// IDXGISwapChain
+//
+//	 - GetBuffer			-- Get the buffer with the target index
+//	 - GetContainingOutput	-- Get output that contains majority of the view
+//	 - GetDesc				-- Get information about the swap chain
+//	 - GetFrameStatistics	-- Get performance statics 
+//	 - GetFullscreenState	-- Get the value and ouput whether in fullscreen
+//	 - GetLastPresentCount	-- Get the count of the times Present been called
+//	 - Present				-- Present the rendered image
+//	 - ResizeBuffers		-- Resize buffers
+//	 - ResizeTarget			-- Resize the target window
+//	 - SetFullscreenState	-- Set whether to show swap chain in fullscreen
+//
+// Note that GetFrameStatistics cannot be used with swap chains which use bit-
+// block transfer (bitblt) model and draw in windowed mode. This function must
+// be only used with flip models or with swap chains which use fullscreen mode.
+// However, it seems that even with those requirements satisfied the DXGI will
+// give the DXGI_ERROR_FRAME_STATISTICS_DISJOIN error when function is called.
+//
+// Note that there may be various amount of reasons why swap chain cannot turn
+// into fullscreen mode. DXGI documentation tells following kinds of reasons.
+//
+//		1. The application is running over terminal server.
+//		2. The output window is being occluded.
+//		3. The output window does not have keyboard focus.
+//		4. Another application is already in full-screen mode.
+//
+// If DXGI_STATUS_MODE_CHANGE_IN_PROGRESS is returned from SetFullscreenState
+// the application shouldn't treat it as an error but try to switch back later.
+//
+// The ResizeTarget can be used to either resize the size of the target window
+// or to change the display mode for the application when in fullscreen mode.
+// It's useful to pick the previous swap chain desc and use it as the basis.
+//
+// Note that Present may fail due a video card being physically removed from
+// the computers or a driver upgrade for the video card has been occured. Here
+// DXGI can return any of the following kinds of errors that should be checked.
+//
+//		S_OK						-- Everything went ok
+//		DXGI_ERROR_DEVICE_RESET		-- Device failed and should be re-created
+//		DXGI_ERROR_DEVICE_REMOVED	-- Device has been removed
+//		DXGI_STATUS_OCCLUDED		-- Window content is not visible
+//		D3DDDIERR_DEVICEREMOVED		-- Device driver has been upgraded
+//
+// Note that when using ResizeBuffers, all current references to buffers should
+// be released so nothing is bound to old buffers when new buffers are created.
+// With GDI compatible swap chains, all DC:s should be released.
+// ============================================================================
+void testSwapChain(ComPtr<IDXGISwapChain> swapchain) {
+	// get information about the swap chain.
+	DXGI_SWAP_CHAIN_DESC desc;
+	check_hresult(swapchain->GetDesc(&desc));
+	printf("==============================================================\n");
+	printf("bufferCount:    %d\n", desc.BufferCount);
+	printf("bufferUsage:    %s\n", usageString(desc.BufferUsage).c_str());
+	printf("bufferFormat:   %d\n", desc.BufferDesc.Format);
+	printf("bufferWidth:    %d\n", desc.BufferDesc.Width);
+	printf("bufferHeight:   %d\n", desc.BufferDesc.Height);
+	printf("bufferScaling:  %s\n", scalingString(desc.BufferDesc.Scaling));
+	printf("bufferScanline: %s\n", scanlineOrderingString(desc.BufferDesc.ScanlineOrdering));
+	printf("flags:          %d\n", desc.Flags);
+	printf("sampleCount:    %d\n", desc.SampleDesc.Count);
+	printf("sampleQuality:  %d\n", desc.SampleDesc.Quality);
+	printf("windowed:       %s\n", boolString(desc.Windowed));
+	printf("swapEffect:     %s\n", swapEffectString(desc.SwapEffect));
+	printf("windowHWND:     %p\n", &desc.OutputWindow);
+
+	// get a reference to the swap chain buffer with the target index.
+	ComPtr<IDXGISurface> buffer;
+	check_hresult(swapchain->GetBuffer(0, IID_PPV_ARGS(&buffer)));
+
+	// get a reference which contains the majority of the view.
+	ComPtr<IDXGIOutput> output;
+	check_hresult(swapchain->GetContainingOutput(&output));
+
+	// enable fullscreen mode.
+	check_hresult(swapchain->SetFullscreenState(true, output.Get()));
+
+	// get performance statistics about the last render frame.
+	/* TODO this is not working in Windows 10 even when in fullscreen.
+	DXGI_FRAME_STATISTICS stats;
+	check_hresult(swapchain->GetFrameStatistics(&stats));
+	printf("presentCount:        %d\n", stats.PresentCount);
+	printf("presentRefreshCount: %d\n", stats.PresentRefreshCount);
+	printf("syncGPUTime:         %lld\n", stats.SyncGPUTime.QuadPart);
+	printf("syncQPCTime:         %lld\n", stats.SyncQPCTime.QuadPart);
+	printf("syncRefreshCount:    %d\n", stats.SyncRefreshCount);
+	*/
+
+	// check whether swap chain is in fullscreen and also get the associated output.
+	BOOL fullscreen;
+	check_hresult(swapchain->GetFullscreenState(&fullscreen, &output));
+	printf("isFullscreen:   %s\n", boolString(fullscreen));
+
+	// check how many time Present (or Present1) has been called.
+	UINT presentCount;
+	check_hresult(swapchain->GetLastPresentCount(&presentCount));
+	printf("presentCount:   %d\n", presentCount);
+
+	// disable fullscreen mode.
+	check_hresult(swapchain->SetFullscreenState(false, nullptr));
+
+	// resize the target window.
+	DXGI_MODE_DESC modeDesc = desc.BufferDesc;
+	modeDesc.Width = 1024;
+	modeDesc.Height = 768;
+	check_hresult(swapchain->ResizeTarget(&modeDesc));
+}
+
 void enumerateAdaptersAndOutputs() {
 	// note that adapters are actually enumerated when the factory is created.
 	ComPtr<IDXGIFactory> factory;
@@ -582,7 +708,7 @@ int main() {
 	enumerateAdaptersAndOutputs();
 
 	/*
-	Window window(WINDOW_WIDTH, WINDOW_HEIGHT);
+	
 	auto factory = createFactory();
 	ComPtr<IDXGIAdapter> adapter;
 	check_hresult(factory->EnumAdapters(0, &adapter));
@@ -625,10 +751,13 @@ int main() {
 	testResource(resource);
 	testSurface(surface);
 
-	/*
-	// testDXGIObject(adapter);
+	Window window(WINDOW_WIDTH, WINDOW_HEIGHT);
 	auto swapchain = testDXGIFactory(window, d3dDevice);
+	testSwapChain(swapchain);
 
+	
+	// testDXGIObject(adapter);
+	/*
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0, 0) > 0) {
 		TranslateMessage(&msg);
@@ -637,5 +766,6 @@ int main() {
 		check_hresult(swapchain->Present(0, 0));
 	}
 	*/
+	
 	return 0;
 }
