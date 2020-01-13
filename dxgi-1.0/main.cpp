@@ -533,18 +533,6 @@ void testSwapChain(ComPtr<IDXGISwapChain> swapchain) {
 	check_hresult(swapchain->ResizeTarget(&modeDesc));
 }
 
-void enumerateAdaptersAndOutputs() {
-	// note that adapters are actually enumerated when the factory is created.
-	ComPtr<IDXGIFactory> factory;
-	check_hresult(CreateDXGIFactory(IID_PPV_ARGS(&factory)));
-
-	// iterate over the enumerated adapters.
-	ComPtr<IDXGIAdapter> adapter;
-	for (auto i = 0u; factory->EnumAdapters(i, &adapter) != DXGI_ERROR_NOT_FOUND; i++) {
-		testAdapter(adapter);
-	}
-}
-
 int main() {
 	// Hmm... we actually seem to need a window, D3D device and D3D resource for our tests.
 	Window window(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -585,15 +573,18 @@ int main() {
 	auto swapchain = testFactory(window, d3dDevice);
 	testSwapChain(swapchain);
 
-	/*
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0, 0) > 0) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 
+		ComPtr<IDXGIOutput> output;
+		check_hresult(swapchain->GetContainingOutput(&output));
+
+		// TODO do neat stuff...?
+
 		check_hresult(swapchain->Present(0, 0));
 	}
-	*/
 	
 	return 0;
 }
