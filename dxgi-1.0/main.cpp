@@ -1,8 +1,7 @@
-#include <wrl/client.h> // ComPtr
-#include <comdef.h>		// _com_error
 #include <string>
 #include <vector>
 
+#include "com_util.h"
 #include "window.h"
 
 #include <dxgi.h>
@@ -18,31 +17,11 @@ using namespace Microsoft::WRL; // ComPtr
 constexpr int WINDOW_WIDTH = 800;
 constexpr int WINDOW_HEIGHT = 600;
 
-// a utility to easily catch failed HRESULTS.
-inline void check_hresult(HRESULT result) {
-	if (FAILED(result)) {
-		throw _com_error(result);
-	}
-}
-
-// a utility to create a new GUID.
-inline GUID createGUID() {
-	GUID guid;
-	check_hresult(CoCreateGuid(&guid));
-	return guid;
-}
-
 // build a new DXGI factory instance.
 ComPtr<IDXGIFactory> createFactory() {
 	ComPtr<IDXGIFactory> factory;
 	check_hresult(CreateDXGIFactory(IID_PPV_ARGS(&factory)));
 	return factory;
-}
-
-// a utility to count COM object references.
-UINT countRefs(ComPtr<IUnknown> object) {
-	object->AddRef();
-	return object->Release();
 }
 
 // a utility to convert DXGI_MODE_ROTATION into a descriptive string.
