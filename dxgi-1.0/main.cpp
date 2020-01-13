@@ -17,13 +17,6 @@ using namespace Microsoft::WRL; // ComPtr
 constexpr int WINDOW_WIDTH = 800;
 constexpr int WINDOW_HEIGHT = 600;
 
-// build a new DXGI factory instance.
-ComPtr<IDXGIFactory> createFactory() {
-	ComPtr<IDXGIFactory> factory;
-	check_hresult(CreateDXGIFactory(IID_PPV_ARGS(&factory)));
-	return factory;
-}
-
 // a utility to convert DXGI_MODE_ROTATION into a descriptive string.
 inline const char* rotationString(DXGI_MODE_ROTATION rotation) {
 	switch (rotation) {
@@ -187,7 +180,8 @@ void testObject(ComPtr<IDXGIObject> object) {
 	printf("data: %s\n", std::string(buffer, size).c_str());
 
 	// assign a IUnknown-derived interface into the target DXGI object.
-	auto object2 = createFactory();
+	ComPtr<IDXGIFactory> object2;
+	check_hresult(CreateDXGIFactory(IID_PPV_ARGS(&object2)));
 	auto guid2 = createGUID();
 	printf("object2 refs before attachment: %d\n", countRefs(object2));
 	check_hresult(object->SetPrivateDataInterface(guid2, object2.Get()));
